@@ -34,17 +34,17 @@ func main() {
 func buy(w http.ResponseWriter, r *http.Request) {
 	fruit := r.URL.Query().Get("fruit")
 	if len(fruit) == 0 {
-		respondWithError(w, "parameter fruit is required")
+		respondWithError(w, "parameter fruit is required\n")
 		return
 	}
 	count := r.URL.Query().Get("count")
 	if len(count) == 0 {
-		respondWithError(w, "parameter count is required")
+		respondWithError(w, "parameter count is required\n")
 		return
 	}
 	c, err := strconv.Atoi(count)
 	if err != nil {
-		respondWithError(w, "count must be a number")
+		respondWithError(w, "count must be a number\n")
 		return
 	}
 	fruits[fruit] += c
@@ -54,21 +54,21 @@ func buy(w http.ResponseWriter, r *http.Request) {
 func sell(w http.ResponseWriter, r *http.Request) {
 	fruit := r.URL.Query().Get("fruit")
 	if len(fruit) == 0 {
-		respondWithError(w, "parameter fruit is required")
+		respondWithError(w, "parameter fruit is required\n")
 		return
 	}
 	count := r.URL.Query().Get("count")
 	if len(count) == 0 {
-		respondWithError(w, "count is required")
+		respondWithError(w, "count is required\n")
 		return
 	}
 	c, err := strconv.Atoi(count)
 	if err != nil {
-		respondWithError(w, "count must be a number")
+		respondWithError(w, "count must be a number\n")
 		return
 	}
 	if c > fruits[fruit] {
-		respondWithError(w, "not enough fruits to sell")
+		respondWithError(w, "not enough fruits to sell\n")
 		return
 	}
 	fruits[fruit] -= c
