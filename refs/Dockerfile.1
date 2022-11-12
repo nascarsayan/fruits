@@ -2,4 +2,4 @@ FROM ubuntu
 WORKDIR /app
 COPY . .
 RUN /app/setup.sh
-ENTRYPOINT ["/fruits"]
+ENTRYPOINT ["/app/fruits"]
