@@ -7,7 +7,7 @@ docker-build:
 	docker build -t fruits:$(VER) -f refs/Dockerfile.$(VER) .
 
 docker-run:
-	docker run -it -p 9999:9999 fruits:$(VER)
+	docker run -it -d -p 9999:9999 fruits:$(VER)
 
 zip:
 	git archive --format zip --output fruits.zip master
