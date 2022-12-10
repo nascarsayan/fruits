@@ -15,9 +15,6 @@ docker-rm:
 zip:
 	git archive --format zip --output fruits.zip master
 
-devbox-setup:
-	sudo bash setup.sh
-
 demo:
 	curl "localhost:9999/"
 	curl "localhost:9999/buy?fruit=apple&count=10"
