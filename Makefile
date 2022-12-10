@@ -1,13 +1,13 @@
-VER ?= 4
+tag ?= latest
 
 run:
 	go run main.go
 
 docker-build:
-	docker build -t fruits:$(VER) -f refs/Dockerfile.$(VER) .
+	docker build -t fruits:$(tag) .
 
 docker-run:
-	docker run -it -d --name fruits -p 9999:9999 fruits:$(VER)
+	docker run -it -d --name fruits -p 9999:9999 fruits:$(tag)
 
 docker-rm:
 	docker rm -f fruits
