@@ -74,10 +74,10 @@ func getReq(w http.ResponseWriter, r *http.Request) (*Req, error) {
 		req.Quantity = quantity
 	}
 	if len(req.Fruit) == 0 || req.Quantity == 0 {
-		return nil, fmt.Errorf("either fruit or quantity is not provided but required")
+		return nil, fmt.Errorf("either fruit or quantity is not provided but required\n")
 	}
 	if req.Quantity <= 0 {
-		return nil, fmt.Errorf("quantity must be a positive number")
+		return nil, fmt.Errorf("quantity must be a positive number\n")
 	}
 	return &req, nil
 }
@@ -125,7 +125,7 @@ func respond(w http.ResponseWriter) {
 }
 
 func respondWithError(w http.ResponseWriter, message string) {
-	fmt.Println("error: ", message)
+	fmt.Print("error: ", message)
 	enableCors(&w)
 	w.WriteHeader(http.StatusBadRequest)
 	_, _ = w.Write([]byte(message))
