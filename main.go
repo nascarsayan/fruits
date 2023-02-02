@@ -1,16 +1,18 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
-
-	"gopkg.in/yaml.v3"
 )
 
 var fruits map[string]int
+
+type Response struct {
+	Fruits map[string]int `json:"fruits"`
+}
 
 func main() {
 	fruits = make(map[string]int)
@@ -76,11 +78,7 @@ func sell(w http.ResponseWriter, r *http.Request) {
 }
 
 func respond(w http.ResponseWriter) {
-	b, _ := yaml.Marshal(fruits)
-	if strings.TrimSpace(string(b)) == "{}" {
-		fmt.Fprint(w, "no fruits\n")
-		return
-	}
+	b, _ := json.Marshal(Response{fruits})
 	fmt.Fprint(w, string(b))
 }
 
