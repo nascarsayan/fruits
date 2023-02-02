@@ -4,11 +4,27 @@ GET http://localhost:9999
 ###
 GET http://localhost:9999/buy?fruit=apple&count=10
 ###
+POST http://localhost:9999/buy
+Content-Type: application/json
+
+{
+  "fruit": "orange",
+  "count": 10
+}
+###
 GET http://localhost:9999/buy?fruit=orange&count=20
 ###
 GET http://localhost:9999
 ###
 GET http://localhost:9999/sell?fruit=apple&count=5
+###
+POST http://localhost:9999/sell
+Content-Type: application/json
+
+{
+  "fruit": "orange",
+  "count": 10
+}
 ###
 GET http://localhost:9999/sell?fruit=orange&count=10
 ###

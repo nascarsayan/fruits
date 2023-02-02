@@ -10,7 +10,12 @@ import (
 
 var fruits map[string]int
 
-type Response struct {
+type Req struct {
+	Fruit string `json:"fruit"`
+	Count int    `json:"count"`
+}
+
+type Res struct {
 	Fruits map[string]int `json:"fruits"`
 }
 
@@ -33,44 +38,66 @@ func main() {
 	}
 }
 
-func buy(w http.ResponseWriter, r *http.Request) {
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Credentials", "true")
+	(*w).Header().Set("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers")
+}
+
+func getReq(w http.ResponseWriter, r *http.Request) *Req {
+	var req Req
 	fruit := r.URL.Query().Get("fruit")
-	if len(fruit) == 0 {
-		respondWithError(w, "parameter fruit is required\n")
+	countStr := r.URL.Query().Get("count")
+	fromParams := true
+	if len(fruit) == 0 || len(countStr) == 0 {
+		fromParams = false
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			respondWithError(w, "either fruit or count is not provided but required")
+			return nil
+		}
+	}
+	if fromParams {
+		count, err := strconv.Atoi(countStr)
+		if err != nil {
+			respondWithError(w, "count must be a number\n")
+			return nil
+		}
+		req.Fruit = fruit
+		req.Count = count
+	}
+	if len(req.Fruit) == 0 || req.Count == 0 {
+		respondWithError(w, "either fruit or count is not provided but required")
+		return nil
+	}
+	if req.Count <= 0 {
+		respondWithError(w, "count must be a positive number\n")
+		return nil
+	}
+	return &req
+}
+
+func buy(w http.ResponseWriter, r *http.Request) {
+	req := getReq(w, r)
+	if req == nil {
 		return
 	}
-	count := r.URL.Query().Get("count")
-	if len(count) == 0 {
-		respondWithError(w, "parameter count is required\n")
-		return
-	}
-	c, err := strconv.Atoi(count)
-	if err != nil {
-		respondWithError(w, "count must be a number\n")
-		return
-	}
+	fruit := req.Fruit
+	c := req.Count
 	fruits[fruit] += c
 	respond(w)
 }
 
 func sell(w http.ResponseWriter, r *http.Request) {
-	fruit := r.URL.Query().Get("fruit")
-	if len(fruit) == 0 {
-		respondWithError(w, "parameter fruit is required\n")
+	req := getReq(w, r)
+	if req == nil {
 		return
 	}
-	count := r.URL.Query().Get("count")
-	if len(count) == 0 {
-		respondWithError(w, "count is required\n")
-		return
-	}
-	c, err := strconv.Atoi(count)
-	if err != nil {
-		respondWithError(w, "count must be a number\n")
-		return
-	}
-	if c > fruits[fruit] {
-		respondWithError(w, "not enough fruits to sell\n")
+	fruit := req.Fruit
+	c := req.Count
+	if fruits[fruit] < c {
+		respondWithError(w, "not enough fruits\n")
 		return
 	}
 	fruits[fruit] -= c
@@ -78,11 +105,13 @@ func sell(w http.ResponseWriter, r *http.Request) {
 }
 
 func respond(w http.ResponseWriter) {
-	b, _ := json.Marshal(Response{fruits})
+	enableCors(&w)
+	b, _ := json.Marshal(Res{fruits})
 	fmt.Fprint(w, string(b))
 }
 
 func respondWithError(w http.ResponseWriter, message string) {
+	enableCors(&w)
 	w.WriteHeader(http.StatusBadRequest)
 	_, _ = w.Write([]byte(message))
 }
