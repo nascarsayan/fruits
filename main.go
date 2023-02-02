@@ -23,6 +23,10 @@ func main() {
 	fruits = make(map[string]int)
 	http.HandleFunc("/",
 		func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != "/" {
+				respondWithError(w, "Invalid API request\n")
+				return
+			}
 			respond(w)
 		})
 	http.HandleFunc("/buy", buy)
