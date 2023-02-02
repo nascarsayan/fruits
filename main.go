@@ -11,8 +11,8 @@ import (
 var fruits map[string]int
 
 type Req struct {
-	Fruit string `json:"fruit"`
-	Count int    `json:"count"`
+	Fruit    string `json:"fruit"`
+	Quantity int    `json:"quantity"`
 }
 
 type Res struct {
@@ -48,31 +48,31 @@ func enableCors(w *http.ResponseWriter) {
 func getReq(w http.ResponseWriter, r *http.Request) *Req {
 	var req Req
 	fruit := r.URL.Query().Get("fruit")
-	countStr := r.URL.Query().Get("count")
+	quantityStr := r.URL.Query().Get("quantity")
 	fromParams := true
-	if len(fruit) == 0 || len(countStr) == 0 {
+	if len(fruit) == 0 || len(quantityStr) == 0 {
 		fromParams = false
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			respondWithError(w, "either fruit or count is not provided but required")
+			respondWithError(w, "either fruit or quantity is not provided but required")
 			return nil
 		}
 	}
 	if fromParams {
-		count, err := strconv.Atoi(countStr)
+		quantity, err := strconv.Atoi(quantityStr)
 		if err != nil {
-			respondWithError(w, "count must be a number\n")
+			respondWithError(w, "quantity must be a number\n")
 			return nil
 		}
 		req.Fruit = fruit
-		req.Count = count
+		req.Quantity = quantity
 	}
-	if len(req.Fruit) == 0 || req.Count == 0 {
-		respondWithError(w, "either fruit or count is not provided but required")
+	if len(req.Fruit) == 0 || req.Quantity == 0 {
+		respondWithError(w, "either fruit or quantity is not provided but required")
 		return nil
 	}
-	if req.Count <= 0 {
-		respondWithError(w, "count must be a positive number\n")
+	if req.Quantity <= 0 {
+		respondWithError(w, "quantity must be a positive number\n")
 		return nil
 	}
 	return &req
@@ -84,7 +84,7 @@ func buy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fruit := req.Fruit
-	c := req.Count
+	c := req.Quantity
 	fruits[fruit] += c
 	respond(w)
 }
@@ -95,7 +95,7 @@ func sell(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fruit := req.Fruit
-	c := req.Count
+	c := req.Quantity
 	if fruits[fruit] < c {
 		respondWithError(w, "not enough fruits\n")
 		return
