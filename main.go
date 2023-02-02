@@ -45,7 +45,11 @@ func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers")
 }
 
-func getReq(w http.ResponseWriter, r *http.Request) *Req {
+func getReq(w http.ResponseWriter, r *http.Request) (*Req, error) {
+	if r.Method != http.MethodPost && r.Method != http.MethodGet {
+		return nil, nil
+	}
+	fmt.Printf("request: %+v\n", r.URL)
 	var req Req
 	fruit := r.URL.Query().Get("fruit")
 	quantityStr := r.URL.Query().Get("quantity")
@@ -54,33 +58,34 @@ func getReq(w http.ResponseWriter, r *http.Request) *Req {
 		fromParams = false
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			respondWithError(w, "either fruit or quantity is not provided but required")
-			return nil
+			return nil, fmt.Errorf("either fruit or quantity is not provided but required\n")
 		}
 	}
 	if fromParams {
 		quantity, err := strconv.Atoi(quantityStr)
 		if err != nil {
-			respondWithError(w, "quantity must be a number\n")
-			return nil
+			return nil, fmt.Errorf("quantity must be a number\n")
 		}
 		req.Fruit = fruit
 		req.Quantity = quantity
 	}
 	if len(req.Fruit) == 0 || req.Quantity == 0 {
-		respondWithError(w, "either fruit or quantity is not provided but required")
-		return nil
+		return nil, fmt.Errorf("either fruit or quantity is not provided but required")
 	}
 	if req.Quantity <= 0 {
-		respondWithError(w, "quantity must be a positive number\n")
-		return nil
+		return nil, fmt.Errorf("quantity must be a positive number")
 	}
-	return &req
+	return &req, nil
 }
 
 func buy(w http.ResponseWriter, r *http.Request) {
-	req := getReq(w, r)
+	req, err := getReq(w, r)
+	if err != nil {
+		respondWithError(w, err.Error())
+		return
+	}
 	if req == nil {
+		respond(w)
 		return
 	}
 	fruit := req.Fruit
@@ -90,8 +95,13 @@ func buy(w http.ResponseWriter, r *http.Request) {
 }
 
 func sell(w http.ResponseWriter, r *http.Request) {
-	req := getReq(w, r)
+	req, err := getReq(w, r)
+	if err != nil {
+		respondWithError(w, err.Error())
+		return
+	}
 	if req == nil {
+		respond(w)
 		return
 	}
 	fruit := req.Fruit
@@ -111,6 +121,7 @@ func respond(w http.ResponseWriter) {
 }
 
 func respondWithError(w http.ResponseWriter, message string) {
+	fmt.Println("error: ", message)
 	enableCors(&w)
 	w.WriteHeader(http.StatusBadRequest)
 	_, _ = w.Write([]byte(message))
